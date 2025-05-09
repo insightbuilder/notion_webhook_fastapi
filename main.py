@@ -70,19 +70,17 @@ def read_root():
 
 
 @app.post("/notion-webhook")
-async def handle_notion_webhook(payload: NotionWebhookPayload | VerificationPayload):
-    if isinstance(payload, VerificationPayload):
+async def handle_notion_webhook(payload):
+    if "verification_token" in payload:
         logger.info(f"Received VerificationPayload: {payload}")
-        verification_token_store["token"] = payload.verification_token
-        return {
-            "message": f"Verification token is {payload.verification_token} is stored"
-        }
+        verification_token_store["token"] = payload["verification_token"]
+        return {"message": "Verification token is stored"}
     else:
-        logger.info(f"Received NotionWebhookPayload: {payload}")
+        logger.info(f"Received Notion Webhook Payload: {payload}")
         # this payload is NotionWebhookPayload
-        page_id = payload.entity.id
+        page_id = payload["id"]
 
         update_payload = {"properties": {"Status": {"select": {"name": "Completed"}}}}
-        print(update_payload)
+        logger.info(update_payload)
 
-        return {"message": f"Page {page_id} updated successfully"}
+        return {"message": f"Page {page_id} successfully recieved"}
