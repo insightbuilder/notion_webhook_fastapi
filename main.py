@@ -6,6 +6,11 @@ from dotenv import load_dotenv
 import httpx
 import os
 
+import logging
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 load_dotenv()
 
 app = FastAPI()
@@ -60,17 +65,20 @@ app = FastAPI()
 
 @app.get("/")
 def read_root():
+    logger.info(f"Testing Logger....")
     return {"Hello": "World"}
 
 
 @app.post("/notion-webhook")
 async def handle_notion_webhook(payload: NotionWebhookPayload | VerificationPayload):
     if isinstance(payload, VerificationPayload):
+        logger.info(f"Received VerificationPayload: {payload}")
         verification_token_store["token"] = payload.verification_token
         return {
             "message": f"Verification token is {payload.verification_token} is stored"
         }
     else:
+        logger.info(f"Received NotionWebhookPayload: {payload}")
         # this payload is NotionWebhookPayload
         page_id = payload.entity.id
 
