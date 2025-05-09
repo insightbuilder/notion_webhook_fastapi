@@ -60,6 +60,7 @@ async def handle_notion_webhook(
         if (
             update_type == "page.content_updated"
             and page_id == last_updt["parent"]["page_id"]
+            and len(last_updt[btype]["rich_text"]) > 1
         ):
             logger.info("The page with {last_updt['parent']['page_id']} is updated")
 
@@ -95,6 +96,9 @@ async def handle_notion_webhook(
             for block in parse_md(markdown_text):
                 notion.blocks.children.append(created_page["id"], children=[block])
         else:
-            logger.info("The page with {last_updt['parent']['page_id']} is not updated")
+            logger.info(
+                "The last paragraph is empty. Remove it.",
+                "The page with {last_updt['parent']['page_id']} is not updated",
+            )
 
         return {"message": f"Page {page_id} successfully recieved"}

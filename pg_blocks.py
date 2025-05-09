@@ -1,7 +1,7 @@
 from notion_client import Client
 import os
 
-notion = Client(auth="ntn_token")
+notion = Client(auth="")
 
 page_id = "1ec84ade96ac803bbe86e258a017466b"
 
@@ -10,7 +10,6 @@ child_results = children.get("results")
 
 for block in child_results:
     print(block["id"])
-    print(block["type"])
     btype = block["type"]
     print(block[btype])
 
