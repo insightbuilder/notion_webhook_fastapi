@@ -1,7 +1,7 @@
 from fastapi import FastAPI, HTTPException
 from notion_client import Client
 from pydantic import BaseModel
-from typing import List, Optional, Literal, Dict, Any
+from typing import List, Optional, Literal, Dict, Any, Union
 from dotenv import load_dotenv
 import httpx
 import os
@@ -70,7 +70,9 @@ def read_root():
 
 
 @app.post("/notion-webhook")
-async def handle_notion_webhook(payload: Dict[str, Any]):
+async def handle_notion_webhook(
+    payload: Union[NotionWebhookPayload, VerificationPayload],
+):
     logger.info(f"Received Notion Webhook Payload: {payload}")
     return {"message": "payload is recieved"}
     # if "verification_token" in payload:
