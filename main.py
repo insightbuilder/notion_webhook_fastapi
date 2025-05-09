@@ -42,8 +42,18 @@ async def handle_notion_webhook(
         verification_token_store["token"] = payload["verification_token"]
         return {"message": "Verification token is stored"}
     else:
-        # this payload is NotionWebhookPayload
+        # Here the actual payload will be received
+        source_page = "1ec84ade96ac803bbe86e258a017466b"
+        # every time the payload is recieved, need to check if it is from source_page else discard it
         page_id = payload["entity"]["id"]
+
+        if page_id != source_page:
+            logger.info(
+                f"Payload from child page, not processing: {payload['entity']['id']}"
+            )
+            # do an early return
+            return {"message": "Payload from child page, not processing"}
+
         update_type = payload["type"]
         blk_id = payload["data"]["updated_blocks"][-1]["id"]
 
@@ -59,10 +69,9 @@ async def handle_notion_webhook(
 
         if (
             update_type == "page.content_updated"
-            and page_id == last_updt["parent"]["page_id"]
             and len(last_updt[btype]["rich_text"]) > 0
         ):
-            logger.info("The page with {last_updt['parent']['page_id']} is updated")
+            logger.info("Processing the last update by user.")
 
             query = last_updt[btype]["rich_text"][0]["text"]["content"]
 
@@ -95,10 +104,12 @@ async def handle_notion_webhook(
             # Iterate through the parsed Markdown blocks and append them to the created page
             for block in parse_md(markdown_text):
                 notion.blocks.children.append(created_page["id"], children=[block])
+
+            logger.info(f"Update in page with {source_page} successfully completed")
         else:
             logger.info(
                 "The last paragraph is empty. Remove it.",
-                "The page with {last_updt['parent']['page_id']} is not updated",
+                f"The page with {last_updt['parent']['page_id']} is not updated",
             )
 
-        return {"message": f"Page {page_id} successfully recieved"}
+        return {"message": f"Update in page with {source_page} successfully completed"}
