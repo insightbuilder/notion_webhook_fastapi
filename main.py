@@ -59,7 +59,18 @@ async def handle_notion_webhook(
             # do an early return
             return {"message": "Page created as content, not processing"}
 
+        if payload["data"]["updated_blocks"][-1]["type"] == "title":
+            logger.info("Content Updated is page title, Nothing to process")
+            # do an early return
+            return {"message": "Page title changed, not processing"}
+
         update_type = payload["type"]
+
+        if update_type == "page.deleted":
+            logger.info("Page deleted, nothing to process.")
+            # do an early return
+            return {"message": "Page deleted, nothing to process."}
+
         blk_id = payload["data"]["updated_blocks"][-1]["id"]
 
         logger.info(
