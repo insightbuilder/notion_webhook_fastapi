@@ -76,7 +76,7 @@ def read_root():
 
 @app.post("/notion-webhook")
 async def handle_notion_webhook(
-    payload: Union[NotionWebhookPayload, VerificationPayload],
+    payload: Dict[str, Any],
 ):
     logger.info(f"Received Notion Webhook Payload: {payload}")
     return {"message": "payload is recieved"}
