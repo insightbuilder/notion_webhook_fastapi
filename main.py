@@ -60,7 +60,7 @@ async def handle_notion_webhook(
         if (
             update_type == "page.content_updated"
             and page_id == last_updt["parent"]["page_id"]
-            and len(last_updt[btype]["rich_text"]) > 1
+            and len(last_updt[btype]["rich_text"]) > 0
         ):
             logger.info("The page with {last_updt['parent']['page_id']} is updated")
 
