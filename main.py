@@ -54,6 +54,11 @@ async def handle_notion_webhook(
             # do an early return
             return {"message": "Payload from child page, not processing"}
 
+        if payload["data"]["updated_blocks"][-1]["type"] == "page":
+            logger.info("Content Updated is a Page, should not process")
+            # do an early return
+            return {"message": "Page created as content, not processing"}
+
         update_type = payload["type"]
         blk_id = payload["data"]["updated_blocks"][-1]["id"]
 
@@ -93,6 +98,12 @@ async def handle_notion_webhook(
                 properties={},
                 children=[],
             )
+            # Stripping the question mark from query if present
+            if "?" in query:
+                query = query.replace("?", "")
+
+            # Adding the reply part to the query
+            query = f"Reply to {query}"
 
             notion.pages.update(
                 created_page["id"],
