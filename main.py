@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException,
+from fastapi import FastAPI, HTTPException
 from notion_client import Client
 from pydantic import BaseModel
 from typing import List, Optional, Literal
@@ -46,11 +46,14 @@ class NotionWebhookPayload(BaseModel):
     entity: Entity
     data: dict
 
+
 # In-memory storage for verification token
 verification_token_store = {}
 
+
 class VerificationPayload(BaseModel):
     verification_token: str
+
 
 app = FastAPI()
 
@@ -64,13 +67,14 @@ def read_root():
 async def handle_notion_webhook(payload: NotionWebhookPayload | VerificationPayload):
     if isinstance(payload, VerificationPayload):
         verification_token_store["token"] = payload.verification_token
-        return {"message": f"Verification token is {payload.verification_token} is stored"}
+        return {
+            "message": f"Verification token is {payload.verification_token} is stored"
+        }
     else:
         # this payload is NotionWebhookPayload
         page_id = payload.entity.id
 
         update_payload = {"properties": {"Status": {"select": {"name": "Completed"}}}}
         print(update_payload)
-
 
         return {"message": f"Page {page_id} updated successfully"}
