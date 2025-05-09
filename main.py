@@ -19,12 +19,17 @@ notion = Client(auth=os.environ["NOTION_TOKEN"])
 
 class Author(BaseModel):
     id: str
-    type: Literal["person"]
+    type: str
+
+
+class AccessibleBy(BaseModel):
+    id: str
+    type: str
 
 
 class Entity(BaseModel):
     id: str
-    type: Literal["page"]
+    type: str
 
 
 class Parent(BaseModel):
@@ -34,7 +39,7 @@ class Parent(BaseModel):
 
 class Data(BaseModel):
     parent: Parent
-    updated_properties: List[str]
+    updated_properties: Optional[List[str]]
 
 
 class NotionWebhookPayload(BaseModel):
@@ -44,6 +49,7 @@ class NotionWebhookPayload(BaseModel):
     workspace_name: str
     subscription_id: str
     integration_id: str
+    accessible_by: Optional[List[AccessibleBy]]
     authors: List[Author]
     attempt_number: int
     entity: Entity
