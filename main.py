@@ -45,7 +45,7 @@ async def handle_notion_webhook(
         # Here the actual payload will be received
         source_page = "1ec84ade96ac803bbe86e258a017466b"
         # every time the payload is recieved, need to check if it is from source_page else discard it
-        page_id = payload["entity"]["id"]
+        page_id = payload["entity"]["id"].replace("-", "")
 
         if page_id != source_page:
             logger.info(
