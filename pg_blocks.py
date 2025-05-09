@@ -1,7 +1,7 @@
 from notion_client import Client
 import os
 
-notion = Client(auth="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")
+notion = Client(auth="ntn_token")
 
 page_id = "1ec84ade96ac803bbe86e258a017466b"
 

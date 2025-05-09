@@ -50,7 +50,7 @@ async def handle_notion_webhook(
         logger.info(
             f"The page id: {page_id} and the blk id: {blk_id} with update_type is {update_type}"
         )
-        children = notion.blocks.children.list(page_id=page_id)
+        children = notion.blocks.children.list(block_id=page_id)
 
         child_results = children.get("results")
 
