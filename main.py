@@ -1,7 +1,7 @@
 from fastapi import FastAPI, HTTPException
 from notion_client import Client
 from pydantic import BaseModel
-from typing import List, Optional, Literal
+from typing import List, Optional, Literal, Dict, Any
 from dotenv import load_dotenv
 import httpx
 import os
@@ -70,17 +70,19 @@ def read_root():
 
 
 @app.post("/notion-webhook")
-async def handle_notion_webhook(payload):
-    if "verification_token" in payload:
-        logger.info(f"Received VerificationPayload: {payload}")
-        verification_token_store["token"] = payload["verification_token"]
-        return {"message": "Verification token is stored"}
-    else:
-        logger.info(f"Received Notion Webhook Payload: {payload}")
-        # this payload is NotionWebhookPayload
-        page_id = payload["id"]
+async def handle_notion_webhook(payload: Dict[str, Any]):
+    logger.info(f"Received Notion Webhook Payload: {payload}")
+    return {"message": "payload is recieved"}
+    # if "verification_token" in payload:
+    #     logger.info(f"Received VerificationPayload: {payload}")
+    #     verification_token_store["token"] = payload["verification_token"]
+    #     return {"message": "Verification token is stored"}
+    # else:
+    #     logger.info(f"Received Notion Webhook Payload: {payload}")
+    #     # this payload is NotionWebhookPayload
+    #     page_id = payload["id"]
 
-        update_payload = {"properties": {"Status": {"select": {"name": "Completed"}}}}
-        logger.info(update_payload)
+    #     update_payload = {"properties": {"Status": {"select": {"name": "Completed"}}}}
+    #     logger.info(update_payload)
 
-        return {"message": f"Page {page_id} successfully recieved"}
+    #     return {"message": f"Page {page_id} successfully recieved"}
