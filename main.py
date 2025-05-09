@@ -36,7 +36,7 @@ async def handle_notion_webhook(
     payload: Dict[str, Any],
 ):
     logger.info(f"Received Notion Webhook Payload: {payload}")
-    # return {"message": "payload is recieved"}
+
     if "verification_token" in payload:
         logger.info(f"Received VerificationPayload: {payload}")
         verification_token_store["token"] = payload["verification_token"]
@@ -53,48 +53,48 @@ async def handle_notion_webhook(
         children = notion.blocks.children.list(block_id=page_id)
 
         child_results = children.get("results")
+        last_updt = child_results[-1]
 
-        for block in child_results:
-            if block["id"] == blk_id:
-                print(block["type"])
-                btype = block["type"]
+        btype = last_updt["type"]
 
-                print(f"The content in {blk_id}")
+        if (
+            update_type == "page.content_updated"
+            and page_id == last_updt["parent"]["page_id"]
+        ):
+            logger.info("The page with {last_updt['parent']['page_id']} is updated")
 
-                print(block[btype]["rich_text"][0]["text"]["content"])
+            query = last_updt[btype]["rich_text"][0]["text"]["content"]
 
-                query = block[btype]["rich_text"][0]["text"]["content"]
+            messages = [{"role": "user", "content": query}]
 
-                messages = [{"role": "user", "content": query}]
+            # Initial Claude API call
+            response = anthropic.messages.create(
+                model="claude-3-5-haiku-20241022",
+                max_tokens=1000,
+                messages=messages,
+            )
 
-                # Initial Claude API call
-                response = anthropic.messages.create(
-                    model="claude-3-5-haiku-20241022",
-                    max_tokens=1000,
-                    messages=messages,
-                )
+            markdown_text = response.content[0].text
 
-                markdown_text = response.content[0].text
+            logger.info(f"Markdown text: {markdown_text}")
 
-                logger.info(f"Markdown text: {markdown_text}")
+            created_page = notion.pages.create(
+                parent={"type": "page_id", "page_id": page_id},
+                properties={},
+                children=[],
+            )
 
-                created_page = notion.pages.create(
-                    parent={"type": "page_id", "page_id": page_id},
-                    properties={},
-                    children=[],
-                )
+            notion.pages.update(
+                created_page["id"],
+                properties={
+                    "title": {"title": [{"type": "text", "text": {"content": query}}]}
+                },
+            )
 
-                notion.pages.update(
-                    created_page["id"],
-                    properties={
-                        "title": {
-                            "title": [{"type": "text", "text": {"content": query}}]
-                        }
-                    },
-                )
-
-                # Iterate through the parsed Markdown blocks and append them to the created page
-                for block in parse_md(markdown_text):
-                    notion.blocks.children.append(created_page["id"], children=[block])
+            # Iterate through the parsed Markdown blocks and append them to the created page
+            for block in parse_md(markdown_text):
+                notion.blocks.children.append(created_page["id"], children=[block])
+        else:
+            logger.info("The page with {last_updt['parent']['page_id']} is not updated")
 
         return {"message": f"Page {page_id} successfully recieved"}
