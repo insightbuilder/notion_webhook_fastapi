@@ -17,24 +17,24 @@ app = FastAPI()
 notion = Client(auth=os.environ["NOTION_TOKEN"])
 
 
-class PersonRef(BaseModel):
+class Author(BaseModel):
     id: str
     type: Literal["person"]
-
-
-class BotRef(BaseModel):
-    id: str
-    type: Literal["bot"]
-
-
-class PageRef(BaseModel):
-    id: str
-    type: Literal["page"]
 
 
 class Entity(BaseModel):
     id: str
     type: Literal["page"]
+
+
+class Parent(BaseModel):
+    id: str
+    type: str  # could be "space", "page", etc.
+
+
+class Data(BaseModel):
+    parent: Parent
+    updated_properties: List[str]
 
 
 class NotionWebhookPayload(BaseModel):
@@ -44,12 +44,11 @@ class NotionWebhookPayload(BaseModel):
     workspace_name: str
     subscription_id: str
     integration_id: str
-    type: str
-    authors: List[PersonRef]
-    accessible_by: List[PersonRef | BotRef]
+    authors: List[Author]
     attempt_number: int
     entity: Entity
-    data: dict
+    type: str
+    data: Data
 
 
 # In-memory storage for verification token
