@@ -3,20 +3,20 @@ from fastapi import FastAPI, status, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
-from typing import List, Optional, Literal, Union
+from typing import List, Optional, Literal
 from pydantic import BaseModel
 from notion_client import Client
-from typing import Dict, Any
 from googleapiclient.discovery import build
 import os
 
 import logging
 
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 API_KEY = os.environ["YOUTUBE_API_KEY"]
-NOTION_KEY = os.environ["WYT_TOKEN"]
+NOTION_KEY = os.environ["YTDEMO_TOKEN"]
 
 
 class Author(BaseModel):
@@ -61,11 +61,10 @@ class WebhookPayload(BaseModel):
 
 
 ### ✅ Create a Page from YouTube Search Data inside yt_vid_analysis DB only
-def create_page_from_yt(database_id, yt_data):
-    """The properties used below are specific to databases"""
-    logger.info(f"Creating new page in {database_id} database")
-    new_page = notion.pages.create(
-        parent={"database_id": database_id},
+def update_page(page_id, yt_data):
+    """The properties are update on the given page id"""
+    new_page = notion.pages.update(
+        page_id=page_id,
         properties={
             "Name": {"rich_text": [{"text": {"content": yt_data["title"]}}]},
             "vid": {"rich_text": [{"text": {"content": yt_data["video_id"]}}]},
@@ -74,13 +73,13 @@ def create_page_from_yt(database_id, yt_data):
             "Description": {
                 "rich_text": [{"text": {"content": yt_data["description"]}}]
             },
-            "URL": {"title": [{"text": {"content": yt_data["url"]}}]},
+            # "URL": {"title": [{"text": {"content": yt_data["url"]}}]},
             "views": {"number": int(yt_data["views"])},
             "likes": {"number": int(yt_data["likes"])},
         },
     )
-    logger.info(f"Page created for {yt_data['title']}")
-    return f"Page created for {yt_data['title']}"
+    logger.info(f"Page update for {yt_data['title']}")
+    return f"Page updated for {yt_data['title']}"
 
 
 def extract_video_id(yt_url):
@@ -90,9 +89,8 @@ def extract_video_id(yt_url):
     return match.group(1) if match else None
 
 
-def get_youtube_video_details(yt_url):
+def get_youtube_video_details(video_id):
     """Fetches video details (Title, ID, Channel, Channel ID, Description) from YouTube API"""
-    video_id = extract_video_id(yt_url)
     if not video_id:
         return {"error": "Invalid YouTube URL"}
 
@@ -164,11 +162,46 @@ async def handle_notion_webhook(payload: WebhookPayload):
         return {"message": "Verification token is stored"}
     else:
         # Here the actual payload will be received
-        logger.info("Received Data Payload: {payload}")
-        source_db = "1f05132d889c80649a98dfda5d138dbb"
+        source_db = ""
+        logger.info(f"Received Data Payload: {payload}")
 
-        update_type = payload.type
+        if payload.data.parent.type == "database":
+            source_db = payload.data.parent.id
+        else:
+            logger.info("Parent of data change is not a database. Aborting process.")
 
-        logger.info(f"Payload parsed: {update_type}")
+        if payload.type != "page.created":
+            logger.info("Change in db is not page creation, not processing")
+            return {"message": "No process"}
 
-        return {"message": "Update to db successfully completed"}
+        logger.info("Page created payload recieved.")
+
+        # get the list of pages in db
+        pages_results = notion.databases.query(
+            database_id=source_db,
+            sorts=[{"property": "created_time", "direction": "descending"}],
+        )
+
+        added_page = pages_results.get("results", [])[0]
+        logger.info(f"Page id is {added_page['id']}.")
+        # get the url property of the page
+
+        extracted_url = added_page["properties"]["URL"]["title"][0]["text"]["content"]
+        logger.info(f"extracted_url is {extracted_url}.")
+
+        try:
+            video_id = extract_video_id(extracted_url)
+
+            # get yt details of the url
+            yt_details = get_youtube_video_details(video_id)
+            logger.info("Got YT Details")
+
+            # update the page with yt_details
+            update_status = update_page(added_page, yt_details)
+            logger.info(f"Payload parsed: {update_status}")
+
+            return {"message": "Update to db successfully completed"}
+
+        except Exception as e:
+            logger.info(f"{extracted_url} had the issue: . {e}")
+            return {"Message": "Check Page URL property"}
