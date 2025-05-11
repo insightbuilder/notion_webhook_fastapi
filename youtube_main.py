@@ -63,6 +63,7 @@ class WebhookPayload(BaseModel):
 ### ✅ Create a Page from YouTube Search Data inside yt_vid_analysis DB only
 def update_page(page_id, yt_data):
     """The properties are update on the given page id"""
+    logger.info(f"Entering update page function with {page_id}")
     new_page = notion.pages.update(
         page_id=page_id,
         properties={
@@ -198,11 +199,11 @@ async def handle_notion_webhook(payload: WebhookPayload):
             logger.info("Got YT Details")
 
             # update the page with yt_details
-            update_status = update_page(added_page, yt_details)
+            update_status = update_page(added_page["id"], yt_details)
             logger.info(f"Payload parsed: {update_status}")
 
             return {"message": "Update to db successfully completed"}
 
         except Exception as e:
-            logger.info(f"{extracted_url} had the issue: . {e}")
+            logger.info(f"{extracted_url} had the issue:. {e}")
             return {"Message": "Check Page URL property"}

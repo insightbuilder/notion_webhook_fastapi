@@ -1,10 +1,10 @@
 from notion_client import Client
-from youtube_main import get_youtube_video_details, update_page
+from youtube_main import get_youtube_video_details, update_page, extract_video_id
 import os
 
 notion = Client(auth=os.environ["YTDEMO_TOKEN"])
 
-page_id = "1f05132d889c80309451feb018ea8637"
+page_id = "1f05132d889c80af985be79654334a89"
 source_db = "1f05132d889c80649a98dfda5d138dbb"
 
 # children = notion.blocks.children.list(block_id=source_db)
@@ -42,9 +42,8 @@ source_db = "1f05132d889c80649a98dfda5d138dbb"
 
 # print(edited_page["id"])
 
-# testing the functions
-yt_data = get_youtube_video_details(
-    yt_url="https://youtu.be/pJo169NVMTw?si=2dxDKR8ShChfxO1g"
-)
+# # testing the functions
+video_id = extract_video_id(yt_url="https://youtu.be/pJo169NVMTw?si=2dxDKR8ShChfxO1g")
+yt_data = get_youtube_video_details(video_id=video_id)
 print(yt_data)
 update_page(page_id, yt_data)
