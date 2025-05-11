@@ -45,7 +45,8 @@ class Data(BaseModel):
     updated_blocks: Optional[List[Blocks]]
 
 
-class NotionWebhookPayload(BaseModel):
+class WebhookPayload(BaseModel):
+    verification_token: Optional[str]
     id: str
     timestamp: str
     workspace_id: Optional[str]
@@ -57,10 +58,6 @@ class NotionWebhookPayload(BaseModel):
     entity: Optional[Entity]
     type: Optional[str]
     data: Optional[Data]
-
-
-class VerificationPayload(BaseModel):
-    verification_token: str
 
 
 ### ✅ Create a Page from YouTube Search Data inside yt_vid_analysis DB only
@@ -159,12 +156,10 @@ def read_root():
 
 
 @app.post("/notion-webhook")
-async def handle_notion_webhook(
-    payload: Union[VerificationPayload, NotionWebhookPayload],
-):
+async def handle_notion_webhook(payload: WebhookPayload):
     logger.info(f"Received Notion Webhook Payload: {payload}")
 
-    if isinstance(payload, VerificationPayload):
+    if payload.verification_token:
         logger.info(f"Received VerificationPayload: {payload}")
         return {"message": "Verification token is stored"}
     else:
