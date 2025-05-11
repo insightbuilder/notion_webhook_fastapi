@@ -40,9 +40,9 @@ class Blocks(BaseModel):
 
 
 class Data(BaseModel):
-    parent: Optional[Parent]
-    updated_properties: Optional[List[str]]
-    updated_blocks: Optional[List[Blocks]]
+    parent: Optional[Parent] = None
+    updated_properties: Optional[List[str]] = None
+    updated_blocks: Optional[List[Blocks]] = None
 
 
 class WebhookPayload(BaseModel):
