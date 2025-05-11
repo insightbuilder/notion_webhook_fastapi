@@ -165,16 +165,17 @@ async def handle_notion_webhook(payload: WebhookPayload):
         source_db = ""
         logger.info(f"Received Data Payload: {payload}")
 
-        if payload.data.parent.type == "database":
-            source_db = payload.data.parent.id
-        else:
-            logger.info("Parent of data change is not a database. Aborting process.")
-
         if payload.type != "page.created":
             logger.info("Change in db is not page creation, not processing")
             return {"message": "No process"}
 
         logger.info("Page created payload recieved.")
+
+        if payload.data.parent.type == "database":
+            source_db = payload.data.parent.id
+        else:
+            logger.info("Parent of data change is not a database. Aborting process.")
+            return {"message": "Parent of data change is not a database."}
 
         # get the list of pages in db
         pages_results = notion.databases.query(
