@@ -46,18 +46,18 @@ class Data(BaseModel):
 
 
 class WebhookPayload(BaseModel):
-    verification_token: Optional[str]
-    id: str
-    timestamp: str
-    workspace_id: Optional[str]
-    workspace_name: Optional[str]
-    subscription_id: Optional[str]
-    integration_id: Optional[str]
-    authors: Optional[List[Author]]
-    attempt_number: Optional[int]
-    entity: Optional[Entity]
-    type: Optional[str]
-    data: Optional[Data]
+    verification_token: Optional[str] = None
+    id: Optional[str] = None
+    timestamp: Optional[str] = None
+    workspace_id: Optional[str] = None
+    workspace_name: Optional[str] = None
+    subscription_id: Optional[str] = None
+    integration_id: Optional[str] = None
+    authors: Optional[List[Author]] = None
+    attempt_number: Optional[int] = None
+    entity: Optional[Entity] = None
+    type: Optional[str] = None
+    data: Optional[Data] = None
 
 
 ### ✅ Create a Page from YouTube Search Data inside yt_vid_analysis DB only
