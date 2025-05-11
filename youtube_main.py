@@ -196,7 +196,7 @@ async def handle_notion_webhook(payload: WebhookPayload):
 
             # get yt details of the url
             yt_details = get_youtube_video_details(video_id)
-            logger.info("Got YT Details")
+            logger.info("Got YT Details: {yt_details}")
 
             # update the page with yt_details
             update_status = update_page(added_page["id"], yt_details)
